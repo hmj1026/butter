@@ -1,0 +1,38 @@
+version: "3"
+
+services:
+  php:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    env_file:
+      - ./.env
+    volumes:
+      - ./php:/src
+  db:
+    image: mariadb:10
+    restart: always
+    volumes:
+      - ./db:/var/lib/mysql
+    environment:
+      - MYSQL_DATABASE=${DB_DATABASE}
+      - MYSQL_USER=${DB_USERNAME}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
+  web:
+    image: nginx:1.19.3-alpine
+    restart: always
+    ports:
+      - 88:80
+      - 4430:443
+    depends_on:
+      - php
+      - db
+      - redis
+    volumes:
+      - ./php:/src
+      - ./web:/etc/nginx/conf.d
+  redis:
+    image: redis:6.0.8-alpine
+    restart: always
